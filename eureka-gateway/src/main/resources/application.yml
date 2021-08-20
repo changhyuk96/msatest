@@ -1,0 +1,46 @@
+
+server:
+  port: 8090
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+
+eureka:
+  client:
+    fetch-registry: true 
+    register-with-eureka: true # 자기 자신을 Eureka Server에 서비스로 등록
+    service-url:
+      defaultZone: http://192.168.123.104:8761/eureka
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@192.168.123.104:1521/orcl
+    username: eureka_user
+    password: eureka123!
+      
+  application:
+    name: gateway-service
+    
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://192.168.123.104:8001 # 포워딩할 주소. http://localhost:8000/api/user 로 들어오면 http://localhost:8001 로 포워딩
+          predicates:
+            - Path=/api/user/** # 해당 gateway의 /api/user/**로 들어오는 request는 user-service로 인식하겠다 를 의미함
+          filters:
+            - CustomAuthFilter
+
+        - id: shopping-service
+          uri: lb://my-shopping-api # 포워딩할 주소. http://localhost:8000/api/user 로 들어오면 http://localhost:8002 로 포워딩
+          predicates:
+            - Path=/api/shop/** # 해당 gateway 서버의 /api/shop/**로 들어오는 request는 shopping-service로 인식하겠다 를 의미함
+            
+        - id: auth-service
+          uri: http://192.168.123.104:8010 # 포워딩할 주소. http://localhost:8000/api/user 로 들어오면 http://localhost:8001 로 포워딩
+          predicates:
+            - Path=/auth/** 
+            
